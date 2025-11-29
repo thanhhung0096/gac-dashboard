@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <title>China GAC Trade Dashboard - Overview</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/shared.css">
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <img id="header-logo" src="assets/logo-dark.svg" alt="China GAC Trade Dashboard">
+            </a>
+            <div class="header-right">
+                <div class="nav-links">
+                    <a href="index.html" class="active">Overview</a>
+                    <a href="dashboard.html">Full Dashboard</a>
+                    <a href="countries.html">Countries</a>
+                    <a href="commodities.html">Commodities</a>
+                    <a href="reports.html">Reports</a>
+                </div>
+                <div class="theme-toggle" onclick="toggleTheme()">
+                    <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+                    <span class="theme-toggle-label" id="theme-label">Dark</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="stats-row">
+            <div class="stat-card" onclick="navigateTo('dashboard.html', {section: 'total'})">
+                <div class="label">Total Trade (Oct 2025)</div>
+                <div class="value">$532.8B</div>
+                <div class="change positive">▲ +5.2% YoY</div>
+            </div>
+            <div class="stat-card" onclick="navigateTo('dashboard.html', {section: 'export'})">
+                <div class="label">Exports</div>
+                <div class="value">$309.1B</div>
+                <div class="change positive">▲ +12.7% YoY</div>
+            </div>
+            <div class="stat-card" onclick="navigateTo('dashboard.html', {section: 'import'})">
+                <div class="label">Imports</div>
+                <div class="value">$213.7B</div>
+                <div class="change negative">▼ -2.3% YoY</div>
+            </div>
+            <div class="stat-card" onclick="navigateTo('dashboard.html', {section: 'balance'})">
+                <div class="label">Trade Balance</div>
+                <div class="value">$95.4B</div>
+                <div class="change positive">Surplus</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>
+                    Top 10 Trading Partners
+                    <a href="countries.html" class="btn btn-secondary" style="padding: 4px 12px; font-size: 11px;">View All</a>
+                </h3>
+                <div id="chart-partners" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <h3>
+                    Trade by Region
+                    <a href="dashboard.html#regional" class="btn btn-secondary" style="padding: 4px 12px; font-size: 11px;">Details</a>
+                </h3>
+                <div id="chart-regions" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <h3>
+                    Monthly Trend (2025)
+                    <a href="dashboard.html#trends" class="btn btn-secondary" style="padding: 4px 12px; font-size: 11px;">Analysis</a>
+                </h3>
+                <div id="chart-trend" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <h3>
+                    Top Commodities
+                    <a href="commodities.html" class="btn btn-secondary" style="padding: 4px 12px; font-size: 11px;">Explore</a>
+                </h3>
+                <div id="chart-commodities" class="chart-container"></div>
+            </div>
+        </div>
+
+        <h2 class="section-header">Quick Access</h2>
+        <div class="card-grid">
+            <div class="info-card" onclick="navigateTo('dashboard.html')">
+                <h4>Full Dashboard</h4>
+                <p>Access all 8 visualization categories including Sankey diagrams, interactive maps, and YoY analytics.</p>
+            </div>
+            <div class="info-card" onclick="navigateTo('countries.html')">
+                <h4>Country Analysis</h4>
+                <p>Deep dive into bilateral trade relationships with any of China's trading partners.</p>
+            </div>
+            <div class="info-card" onclick="navigateTo('commodities.html')">
+                <h4>Commodity Breakdown</h4>
+                <p>Explore trade data by HS code categories and product classifications.</p>
+            </div>
+            <div class="info-card" onclick="navigateTo('reports.html')">
+                <h4>Generate Reports</h4>
+                <p>Create and export custom trade reports in PDF or Excel format.</p>
+            </div>
+        </div>
+
+        <h2 class="section-header">Top Countries by Trade Volume</h2>
+        <div class="chart-card">
+            <table class="data-table" id="countries-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Country</th>
+                        <th>Region</th>
+                        <th>Export</th>
+                        <th>Import</th>
+                        <th>Total</th>
+                        <th>YoY Change</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/shared.js"></script>
+    <script>
+        const charts = {};
+
+        function renderAllCharts() {
+            renderPartnersChart();
+            renderRegionsChart();
+            renderTrendChart();
+            renderCommoditiesChart();
+        }
+
+        function renderPartnersChart() {
+            if (!charts.partners) {
+                charts.partners = echarts.init(document.getElementById('chart-partners'));
+            }
+            const theme = getThemeConfig();
+            const sorted = [...tradeData.countries].sort((a, b) => (b.export + b.import) - (a.export + a.import)).slice(0, 10);
+
+            charts.partners.setOption({
+                ...theme,
+                tooltip: {
+                    ...theme.tooltip,
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    formatter: params => `<b>${params[0].name}</b><br/>Total: $${params[0].value.toFixed(1)}B`
+                },
+                grid: { left: '3%', right: '4%', bottom: '3%', top: '3%', containLabel: true },
+                xAxis: {
+                    type: 'value',
+                    axisLine: theme.axisLine,
+                    axisLabel: { ...theme.axisLabel, formatter: '${value}B' },
+                    splitLine: theme.splitLine
+                },
+                yAxis: {
+                    type: 'category',
+                    data: sorted.map(p => p.name).reverse(),
+                    axisLine: theme.axisLine,
+                    axisLabel: { ...theme.axisLabel, fontSize: 10 },
+                    axisTick: { show: false }
+                },
+                series: [{
+                    type: 'bar',
+                    data: sorted.map(p => ({
+                        value: p.export + p.import,
+                        itemStyle: {
+                            color: {
+                                type: 'linear', x: 0, y: 0, x2: 1, y2: 0,
+                                colorStops: [
+                                    { offset: 0, color: colors.regions[p.region] || colors.primary },
+                                    { offset: 1, color: adjustColor(colors.regions[p.region] || colors.primary, 40) }
+                                ]
+                            },
+                            borderRadius: [0, 5, 5, 0]
+                        }
+                    })).reverse(),
+                    barWidth: '60%'
+                }]
+            }, true);
+
+            charts.partners.on('click', function(params) {
+                const country = sorted.find(c => c.name === params.name);
+                if (country) navigateTo('country.html', { code: country.code });
+            });
+        }
+
+        function renderRegionsChart() {
+            if (!charts.regions) {
+                charts.regions = echarts.init(document.getElementById('chart-regions'));
+            }
+            const theme = getThemeConfig();
+
+            charts.regions.setOption({
+                ...theme,
+                tooltip: {
+                    ...theme.tooltip,
+                    trigger: 'item',
+                    formatter: params => `<b>${params.name}</b><br/>$${params.value.toFixed(1)}B (${params.percent}%)`
+                },
+                legend: {
+                    ...theme.legend,
+                    orient: 'vertical',
+                    right: '5%',
+                    top: 'center',
+                    itemGap: 12
+                },
+                series: [{
+                    type: 'pie',
+                    radius: ['45%', '72%'],
+                    center: ['35%', '50%'],
+                    avoidLabelOverlap: false,
+                    itemStyle: {
+                        borderRadius: 5,
+                        borderColor: currentTheme === 'dark' ? '#0f1419' : '#fff',
+                        borderWidth: 2
+                    },
+                    label: { show: false },
+                    emphasis: {
+                        scale: true,
+                        scaleSize: 8,
+                        label: { show: true, fontSize: 13, fontWeight: 600, color: theme.textStyle.color }
+                    },
+                    data: tradeData.regions.map(r => ({
+                        value: r.export + r.import,
+                        name: r.name,
+                        itemStyle: { color: colors.regions[r.name] }
+                    }))
+                }]
+            }, true);
+
+            charts.regions.on('click', function(params) {
+                navigateTo('countries.html', { region: params.name });
+            });
+        }
+
+        function renderTrendChart() {
+            if (!charts.trend) {
+                charts.trend = echarts.init(document.getElementById('chart-trend'));
+            }
+            const theme = getThemeConfig();
+
+            charts.trend.setOption({
+                ...theme,
+                tooltip: { ...theme.tooltip, trigger: 'axis' },
+                legend: { ...theme.legend, data: ['Exports', 'Imports'], top: 0 },
+                grid: { left: '3%', right: '4%', bottom: '3%', top: '15%', containLabel: true },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: tradeData.monthly.labels,
+                    axisLine: theme.axisLine,
+                    axisLabel: theme.axisLabel
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: { show: false },
+                    axisLabel: { ...theme.axisLabel, formatter: '${value}B' },
+                    splitLine: theme.splitLine,
+                    min: 150
+                },
+                series: [
+                    {
+                        name: 'Exports',
+                        type: 'line',
+                        smooth: 0.4,
+                        data: tradeData.monthly.exports,
+                        lineStyle: { width: 2.5, color: colors.success },
+                        itemStyle: { color: colors.success },
+                        areaStyle: {
+                            color: {
+                                type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+                                colorStops: [
+                                    { offset: 0, color: 'rgba(0, 200, 83, 0.3)' },
+                                    { offset: 1, color: 'rgba(0, 200, 83, 0)' }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        name: 'Imports',
+                        type: 'line',
+                        smooth: 0.4,
+                        data: tradeData.monthly.imports,
+                        lineStyle: { width: 2.5, color: colors.danger },
+                        itemStyle: { color: colors.danger },
+                        areaStyle: {
+                            color: {
+                                type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+                                colorStops: [
+                                    { offset: 0, color: 'rgba(255, 23, 68, 0.3)' },
+                                    { offset: 1, color: 'rgba(255, 23, 68, 0)' }
+                                ]
+                            }
+                        }
+                    }
+                ]
+            }, true);
+        }
+
+        function renderCommoditiesChart() {
+            if (!charts.commodities) {
+                charts.commodities = echarts.init(document.getElementById('chart-commodities'));
+            }
+            const theme = getThemeConfig();
+            const topExports = tradeData.commodities.exports.slice(0, 5);
+            const topImports = tradeData.commodities.imports.slice(0, 5);
+
+            charts.commodities.setOption({
+                ...theme,
+                tooltip: { ...theme.tooltip, trigger: 'axis', axisPointer: { type: 'shadow' } },
+                legend: { ...theme.legend, data: ['Export', 'Import'], top: 0 },
+                grid: { left: '3%', right: '4%', bottom: '3%', top: '15%', containLabel: true },
+                xAxis: {
+                    type: 'value',
+                    axisLine: theme.axisLine,
+                    axisLabel: { ...theme.axisLabel, formatter: '${value}B' },
+                    splitLine: theme.splitLine
+                },
+                yAxis: {
+                    type: 'category',
+                    data: ['Machinery', 'Electronics', 'Textiles', 'Chemicals', 'Metals'].reverse(),
+                    axisLine: theme.axisLine,
+                    axisLabel: { ...theme.axisLabel, fontSize: 10 },
+                    axisTick: { show: false }
+                },
+                series: [
+                    {
+                        name: 'Export',
+                        type: 'bar',
+                        data: topExports.map(c => c.value).reverse(),
+                        itemStyle: {
+                            color: {
+                                type: 'linear', x: 0, y: 0, x2: 1, y2: 0,
+                                colorStops: [
+                                    { offset: 0, color: adjustColor(colors.success, -30) },
+                                    { offset: 1, color: colors.success }
+                                ]
+                            },
+                            borderRadius: [0, 5, 5, 0]
+                        }
+                    },
+                    {
+                        name: 'Import',
+                        type: 'bar',
+                        data: topImports.map(c => c.value).reverse(),
+                        itemStyle: {
+                            color: {
+                                type: 'linear', x: 0, y: 0, x2: 1, y2: 0,
+                                colorStops: [
+                                    { offset: 0, color: adjustColor(colors.danger, -30) },
+                                    { offset: 1, color: colors.danger }
+                                ]
+                            },
+                            borderRadius: [0, 5, 5, 0]
+                        }
+                    }
+                ]
+            }, true);
+
+            charts.commodities.on('click', function(params) {
+                navigateTo('commodities.html', { category: params.name.toLowerCase() });
+            });
+        }
+
+        function renderCountriesTable() {
+            const tbody = document.querySelector('#countries-table tbody');
+            const sorted = [...tradeData.countries].sort((a, b) => (b.export + b.import) - (a.export + a.import));
+
+            tbody.innerHTML = sorted.slice(0, 10).map((c, idx) => `
+                <tr class="clickable-row" onclick="navigateTo('country.html', {code: '${c.code}'})">
+                    <td>${idx + 1}</td>
+                    <td><strong>${c.name}</strong></td>
+                    <td><span class="tag ${getRegionClass(c.region)}">${c.region}</span></td>
+                    <td>$${c.export.toFixed(1)}B</td>
+                    <td>$${c.import.toFixed(1)}B</td>
+                    <td><strong>$${(c.export + c.import).toFixed(1)}B</strong></td>
+                    <td class="${c.yoyChange >= 0 ? 'positive' : 'negative'}" style="color: var(--${c.yoyChange >= 0 ? 'success' : 'danger'})">
+                        ${c.yoyChange >= 0 ? '▲' : '▼'} ${Math.abs(c.yoyChange)}%
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        window.addEventListener('resize', () => {
+            Object.values(charts).forEach(chart => chart && chart.resize());
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAllCharts();
+            renderCountriesTable();
+        });
+    </script>
+</body>
+</html>

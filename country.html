@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <title>Country Details - China GAC Trade Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+        .country-header {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+        .country-flag {
+            width: 80px;
+            height: 60px;
+            background: var(--bg-card);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            border: 1px solid var(--border-color);
+        }
+        .country-info h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+        .country-meta {
+            display: flex;
+            gap: 16px;
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+        .country-meta span {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-left: auto;
+        }
+        .related-countries {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+        .related-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .related-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+        }
+        .related-card h5 {
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+        .related-card p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <img id="header-logo" src="assets/logo-dark.svg" alt="China GAC Trade Dashboard">
+            </a>
+            <div class="header-right">
+                <div class="nav-links">
+                    <a href="index.html">Overview</a>
+                    <a href="dashboard.html">Full Dashboard</a>
+                    <a href="countries.html" class="active">Countries</a>
+                    <a href="commodities.html">Commodities</a>
+                    <a href="reports.html">Reports</a>
+                </div>
+                <div class="theme-toggle" onclick="toggleTheme()">
+                    <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+                    <span class="theme-toggle-label" id="theme-label">Dark</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="index.html">Home</a>
+            <span>/</span>
+            <a href="countries.html">Countries</a>
+            <span>/</span>
+            <span id="breadcrumb-country">Loading...</span>
+        </div>
+
+        <div class="country-header">
+            <div class="country-flag" id="country-flag">🏳️</div>
+            <div class="country-info">
+                <h1 id="country-name">Loading...</h1>
+                <div class="country-meta">
+                    <span id="country-region"><span class="tag">Loading</span></span>
+                    <span>Code: <strong id="country-code">---</strong></span>
+                </div>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-secondary" onclick="navigateTo('dashboard.html', {country: currentCountry.code})">View in Dashboard</button>
+                <button class="btn btn-primary" onclick="navigateTo('reports.html', {country: currentCountry.code})">Generate Report</button>
+            </div>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="label">Total Trade</div>
+                <div class="value" id="stat-total">$0B</div>
+                <div class="change" id="stat-total-change">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Exports to China</div>
+                <div class="value" id="stat-export">$0B</div>
+                <div class="change positive" id="stat-export-change">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Imports from China</div>
+                <div class="value" id="stat-import">$0B</div>
+                <div class="change" id="stat-import-change">Loading...</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Trade Balance</div>
+                <div class="value" id="stat-balance">$0B</div>
+                <div class="change" id="stat-balance-type">---</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>Monthly Trade Trend<span class="badge">Line Chart</span></h3>
+                <div id="chart-trend" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <h3>Export vs Import<span class="badge">Bar Chart</span></h3>
+                <div id="chart-comparison" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <h3>Top Export Commodities<span class="badge">Treemap</span></h3>
+                <div id="chart-export-commodities" class="chart-container"></div>
+            </div>
+            <div class="chart-card">
+                <h3>Top Import Commodities<span class="badge">Treemap</span></h3>
+                <div id="chart-import-commodities" class="chart-container"></div>
+            </div>
+        </div>
+
+        <h2 class="section-header">Year-over-Year Comparison</h2>
+        <div class="chart-card">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Period</th>
+                        <th>Export</th>
+                        <th>Import</th>
+                        <th>Total</th>
+                        <th>Balance</th>
+                        <th>YoY Change</th>
+                    </tr>
+                </thead>
+                <tbody id="yoy-table"></tbody>
+            </table>
+        </div>
+
+        <h2 class="section-header">Related Countries</h2>
+        <p class="page-subtitle">Other trading partners in the same region</p>
+        <div class="related-countries" id="related-countries"></div>
+    </div>
+
+    <script src="js/shared.js"></script>
+    <script>
+        const charts = {};
+        let currentCountry = null;
+
+        const countryFlags = {
+            'USA': '🇺🇸', 'JPN': '🇯🇵', 'KOR': '🇰🇷', 'VNM': '🇻🇳', 'DEU': '🇩🇪',
+            'AUS': '🇦🇺', 'TWN': '🇹🇼', 'MYS': '🇲🇾', 'RUS': '🇷🇺', 'BRA': '🇧🇷',
+            'THA': '🇹🇭', 'IND': '🇮🇳', 'NLD': '🇳🇱', 'SGP': '🇸🇬', 'GBR': '🇬🇧',
+            'ZAF': '🇿🇦'
+        };
+
+        function loadCountry() {
+            const params = getUrlParams();
+            const code = params.code || 'USA';
+
+            currentCountry = getCountryByCode(code);
+            if (!currentCountry) {
+                currentCountry = tradeData.countries[0];
+            }
+
+            document.getElementById('breadcrumb-country').textContent = currentCountry.name;
+            document.getElementById('country-name').textContent = currentCountry.name;
+            document.getElementById('country-code').textContent = currentCountry.code;
+            document.getElementById('country-flag').textContent = countryFlags[currentCountry.code] || '🏳️';
+
+            const regionTag = document.getElementById('country-region');
+            regionTag.innerHTML = `<span class="tag ${getRegionClass(currentCountry.region)}">${currentCountry.region}</span>`;
+
+            const total = currentCountry.export + currentCountry.import;
+            const balance = currentCountry.export - currentCountry.import;
+
+            document.getElementById('stat-total').textContent = `$${total.toFixed(1)}B`;
+            document.getElementById('stat-export').textContent = `$${currentCountry.export.toFixed(1)}B`;
+            document.getElementById('stat-import').textContent = `$${currentCountry.import.toFixed(1)}B`;
+            document.getElementById('stat-balance').textContent = `$${Math.abs(balance).toFixed(1)}B`;
+
+            const yoyClass = currentCountry.yoyChange >= 0 ? 'positive' : 'negative';
+            const yoyIcon = currentCountry.yoyChange >= 0 ? '▲' : '▼';
+            document.getElementById('stat-total-change').className = `change ${yoyClass}`;
+            document.getElementById('stat-total-change').textContent = `${yoyIcon} ${Math.abs(currentCountry.yoyChange)}% YoY`;
+
+            document.getElementById('stat-export-change').textContent = `${yoyIcon} ${Math.abs(currentCountry.yoyChange + 2)}% YoY`;
+            document.getElementById('stat-import-change').textContent = `${currentCountry.yoyChange >= 0 ? '▲' : '▼'} ${Math.abs(currentCountry.yoyChange - 1)}% YoY`;
+
+            const balanceType = balance >= 0 ? 'Surplus' : 'Deficit';
+            document.getElementById('stat-balance-type').className = `change ${balance >= 0 ? 'positive' : 'negative'}`;
+            document.getElementById('stat-balance-type').textContent = balanceType;
+
+            document.title = `${currentCountry.name} - China GAC Trade Dashboard`;
+
+            renderAllCharts();
+            renderYoyTable();
+            renderRelatedCountries();
+        }
+
+        function renderAllCharts() {
+            renderTrendChart();
+            renderComparisonChart();
+            renderCommodityTreemaps();
+        }
+
+        function renderTrendChart() {
+            if (!charts.trend) {
+                charts.trend = echarts.init(document.getElementById('chart-trend'));
+            }
+            const theme = getThemeConfig();
+
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
+            const baseExport = currentCountry.export;
+            const baseImport = currentCountry.import;
+
+            const exportData = months.map((_, i) => +(baseExport * (0.85 + Math.random() * 0.3)).toFixed(1));
+            const importData = months.map((_, i) => +(baseImport * (0.85 + Math.random() * 0.3)).toFixed(1));
+
+            charts.trend.setOption({
+                ...theme,
+                tooltip: { ...theme.tooltip, trigger: 'axis' },
+                legend: { ...theme.legend, data: ['Export', 'Import'], top: 0 },
+                grid: { left: '3%', right: '4%', bottom: '3%', top: '15%', containLabel: true },
+                xAxis: {
+                    type: 'category',
+                    boundaryGap: false,
+                    data: months,
+                    axisLine: theme.axisLine,
+                    axisLabel: theme.axisLabel
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: { show: false },
+                    axisLabel: { ...theme.axisLabel, formatter: '${value}B' },
+                    splitLine: theme.splitLine
+                },
+                series: [
+                    {
+                        name: 'Export',
+                        type: 'line',
+                        smooth: 0.4,
+                        data: exportData,
+                        lineStyle: { width: 2.5, color: colors.success },
+                        itemStyle: { color: colors.success },
+                        areaStyle: {
+                            color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(0, 200, 83, 0.3)' }, { offset: 1, color: 'rgba(0, 200, 83, 0)' }] }
+                        }
+                    },
+                    {
+                        name: 'Import',
+                        type: 'line',
+                        smooth: 0.4,
+                        data: importData,
+                        lineStyle: { width: 2.5, color: colors.danger },
+                        itemStyle: { color: colors.danger },
+                        areaStyle: {
+                            color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(255, 23, 68, 0.3)' }, { offset: 1, color: 'rgba(255, 23, 68, 0)' }] }
+                        }
+                    }
+                ]
+            }, true);
+        }
+
+        function renderComparisonChart() {
+            if (!charts.comparison) {
+                charts.comparison = echarts.init(document.getElementById('chart-comparison'));
+            }
+            const theme = getThemeConfig();
+
+            const years = ['2021', '2022', '2023', '2024', '2025'];
+            const exportData = years.map((_, i) => +(currentCountry.export * (0.7 + i * 0.1)).toFixed(1));
+            const importData = years.map((_, i) => +(currentCountry.import * (0.75 + i * 0.08)).toFixed(1));
+
+            charts.comparison.setOption({
+                ...theme,
+                tooltip: { ...theme.tooltip, trigger: 'axis', axisPointer: { type: 'shadow' } },
+                legend: { ...theme.legend, data: ['Export', 'Import'], top: 0 },
+                grid: { left: '3%', right: '4%', bottom: '3%', top: '15%', containLabel: true },
+                xAxis: {
+                    type: 'category',
+                    data: years,
+                    axisLine: theme.axisLine,
+                    axisLabel: theme.axisLabel
+                },
+                yAxis: {
+                    type: 'value',
+                    axisLine: { show: false },
+                    axisLabel: { ...theme.axisLabel, formatter: '${value}B' },
+                    splitLine: theme.splitLine
+                },
+                series: [
+                    {
+                        name: 'Export',
+                        type: 'bar',
+                        data: exportData,
+                        itemStyle: {
+                            color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: colors.success }, { offset: 1, color: adjustColor(colors.success, -40) }] },
+                            borderRadius: [5, 5, 0, 0]
+                        }
+                    },
+                    {
+                        name: 'Import',
+                        type: 'bar',
+                        data: importData,
+                        itemStyle: {
+                            color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: colors.danger }, { offset: 1, color: adjustColor(colors.danger, -40) }] },
+                            borderRadius: [5, 5, 0, 0]
+                        }
+                    }
+                ]
+            }, true);
+        }
+
+        function renderCommodityTreemaps() {
+            const theme = getThemeConfig();
+
+            if (!charts.exportCommodities) {
+                charts.exportCommodities = echarts.init(document.getElementById('chart-export-commodities'));
+            }
+            if (!charts.importCommodities) {
+                charts.importCommodities = echarts.init(document.getElementById('chart-import-commodities'));
+            }
+
+            const treemapConfig = (data, colorPalette) => ({
+                ...theme,
+                tooltip: { ...theme.tooltip, formatter: params => `<b>${params.name}</b><br/>$${params.value}B` },
+                series: [{
+                    type: 'treemap',
+                    data: data,
+                    roam: false,
+                    nodeClick: false,
+                    breadcrumb: { show: false },
+                    label: { show: true, formatter: '{b}\n${c}B', color: '#fff', fontSize: 10, fontWeight: 500 },
+                    itemStyle: { borderColor: currentTheme === 'dark' ? '#0f1419' : '#fff', borderWidth: 2, borderRadius: 5 },
+                    levels: [{ color: colorPalette }]
+                }]
+            });
+
+            const exportCommodities = [
+                { name: 'Electronics', value: +(currentCountry.export * 0.35).toFixed(1) },
+                { name: 'Machinery', value: +(currentCountry.export * 0.25).toFixed(1) },
+                { name: 'Textiles', value: +(currentCountry.export * 0.15).toFixed(1) },
+                { name: 'Chemicals', value: +(currentCountry.export * 0.12).toFixed(1) },
+                { name: 'Other', value: +(currentCountry.export * 0.13).toFixed(1) }
+            ];
+
+            const importCommodities = [
+                { name: 'Raw Materials', value: +(currentCountry.import * 0.30).toFixed(1) },
+                { name: 'Agriculture', value: +(currentCountry.import * 0.25).toFixed(1) },
+                { name: 'Energy', value: +(currentCountry.import * 0.20).toFixed(1) },
+                { name: 'Machinery', value: +(currentCountry.import * 0.15).toFixed(1) },
+                { name: 'Other', value: +(currentCountry.import * 0.10).toFixed(1) }
+            ];
+
+            charts.exportCommodities.setOption(treemapConfig(exportCommodities, ['#00c853', '#00e676', '#69f0ae', '#b9f6ca', '#1de9b6']), true);
+            charts.importCommodities.setOption(treemapConfig(importCommodities, ['#ff1744', '#ff5252', '#ff8a80', '#f48fb1', '#e91e63']), true);
+
+            charts.exportCommodities.on('click', params => navigateTo('commodities.html', { category: params.name.toLowerCase(), country: currentCountry.code }));
+            charts.importCommodities.on('click', params => navigateTo('commodities.html', { category: params.name.toLowerCase(), country: currentCountry.code }));
+        }
+
+        function renderYoyTable() {
+            const tbody = document.getElementById('yoy-table');
+            const years = ['2025 YTD', '2024', '2023', '2022', '2021'];
+            const multipliers = [1, 0.95, 0.88, 0.82, 0.75];
+
+            tbody.innerHTML = years.map((year, idx) => {
+                const exp = +(currentCountry.export * multipliers[idx] * 12).toFixed(1);
+                const imp = +(currentCountry.import * multipliers[idx] * 12).toFixed(1);
+                const total = exp + imp;
+                const balance = exp - imp;
+                const yoy = idx === 0 ? currentCountry.yoyChange : +(Math.random() * 10 - 2).toFixed(1);
+                const yoyClass = yoy >= 0 ? 'positive' : 'negative';
+
+                return `
+                    <tr>
+                        <td><strong>${year}</strong></td>
+                        <td>$${exp.toFixed(1)}B</td>
+                        <td>$${imp.toFixed(1)}B</td>
+                        <td><strong>$${total.toFixed(1)}B</strong></td>
+                        <td style="color: var(--${balance >= 0 ? 'success' : 'danger'})">${balance >= 0 ? '+' : ''}$${balance.toFixed(1)}B</td>
+                        <td style="color: var(--${yoy >= 0 ? 'success' : 'danger'})">${yoy >= 0 ? '▲' : '▼'} ${Math.abs(yoy)}%</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function renderRelatedCountries() {
+            const related = getCountriesByRegion(currentCountry.region).filter(c => c.code !== currentCountry.code);
+            const container = document.getElementById('related-countries');
+
+            container.innerHTML = related.map(c => `
+                <div class="related-card" onclick="navigateTo('country.html', {code: '${c.code}'})">
+                    <h5>${countryFlags[c.code] || '🏳️'} ${c.name}</h5>
+                    <p>Total: $${(c.export + c.import).toFixed(1)}B</p>
+                </div>
+            `).join('');
+        }
+
+        window.addEventListener('resize', () => {
+            Object.values(charts).forEach(chart => chart && chart.resize());
+        });
+
+        document.addEventListener('DOMContentLoaded', loadCountry);
+    </script>
+</body>
+</html>

@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <title>Commodities - China GAC Trade Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/shared.css">
+    <style>
+        .hs-tree {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .hs-item {
+            padding: 12px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+        }
+        .hs-item:hover { background: var(--bg-card-hover); }
+        .hs-item.active {
+            background: rgba(0, 188, 212, 0.15);
+            border-left: 3px solid var(--accent);
+        }
+        .hs-item .code {
+            font-family: monospace;
+            font-size: 12px;
+            color: var(--accent);
+            margin-right: 12px;
+        }
+        .hs-item .name { flex: 1; font-size: 13px; }
+        .hs-item .value {
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+        .commodity-detail {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 24px;
+        }
+        .commodity-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .commodity-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+        }
+        .commodity-header .hs-badge {
+            background: rgba(0, 188, 212, 0.2);
+            color: var(--accent);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <img id="header-logo" src="assets/logo-dark.svg" alt="China GAC Trade Dashboard">
+            </a>
+            <div class="header-right">
+                <div class="nav-links">
+                    <a href="index.html">Overview</a>
+                    <a href="dashboard.html">Full Dashboard</a>
+                    <a href="countries.html">Countries</a>
+                    <a href="commodities.html" class="active">Commodities</a>
+                    <a href="reports.html">Reports</a>
+                </div>
+                <div class="theme-toggle" onclick="toggleTheme()">
+                    <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+                    <span class="theme-toggle-label" id="theme-label">Dark</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="index.html">Home</a>
+            <span>/</span>
+            <span>Commodities</span>
+        </div>
+
+        <h1 class="page-title">Commodity Breakdown</h1>
+        <p class="page-subtitle">Explore trade data by HS code categories and product classifications</p>
+
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label>Trade Direction</label>
+                <select id="filter-direction" onchange="filterCommodities()">
+                    <option value="all">All</option>
+                    <option value="export">Exports Only</option>
+                    <option value="import">Imports Only</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Search HS Code</label>
+                <input type="text" id="search-input" placeholder="Code or name..." oninput="filterCommodities()">
+            </div>
+            <button class="btn btn-primary" onclick="navigateTo('reports.html', {type: 'commodity'})">Generate Report</button>
+        </div>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <div class="label">Total Export Commodities</div>
+                <div class="value">$309.1B</div>
+                <div class="change positive">▲ +12.7% YoY</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Total Import Commodities</div>
+                <div class="value">$213.7B</div>
+                <div class="change negative">▼ -2.3% YoY</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Top Export Category</div>
+                <div class="value">Machinery</div>
+                <div class="change positive">$89.5B</div>
+            </div>
+            <div class="stat-card">
+                <div class="label">Top Import Category</div>
+                <div class="value">Electronics</div>
+                <div class="change negative">$68.5B</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>Export Commodities<span class="badge">Treemap</span></h3>
+                <div id="chart-export-treemap" class="chart-container tall"></div>
+            </div>
+            <div class="chart-card">
+                <h3>Import Commodities<span class="badge">Treemap</span></h3>
+                <div id="chart-import-treemap" class="chart-container tall"></div>
+            </div>
+        </div>
+
+        <div class="charts-grid" style="grid-template-columns: 300px 1fr;">
+            <div class="hs-tree">
+                <h3 style="margin-bottom: 16px; font-size: 14px; color: var(--text-muted);">HS Code Categories</h3>
+                <div id="hs-list"></div>
+            </div>
+            <div class="commodity-detail" id="commodity-detail">
+                <div class="commodity-header">
+                    <div>
+                        <h2 id="detail-name">Select a commodity</h2>
+                        <p style="color: var(--text-muted); margin-top: 4px;" id="detail-description">Click on a category from the left panel</p>
+                    </div>
+                    <span class="hs-badge" id="detail-code">HS --</span>
+                </div>
+                <div class="charts-grid" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <h4 style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Monthly Trend</h4>
+                        <div id="chart-detail-trend" style="height: 200px;"></div>
+                    </div>
+                    <div>
+                        <h4 style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Top Partners</h4>
+                        <div id="chart-detail-partners" style="height: 200px;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <h2 class="section-header">All Commodities</h2>
+        <div class="chart-card">
+            <table class="data-table" id="commodities-table">
+                <thead>
+                    <tr>
+                        <th>HS Code</th>
+                        <th>Category</th>
+                        <th>Export</th>
+                        <th>Import</th>
+                        <th>Balance</th>
+                        <th>YoY Change</th>
+                        <th>Top Partner</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/shared.js"></script>
+    <script>
+        const charts = {};
+        let selectedCommodity = null;
+
+        const allCommodities = [
+            { code: '84', name: 'Machinery & Equipment', export: 89.5, import: 18.9, yoy: 8.2, topPartner: 'USA' },
+            { code: '85', name: 'Electronics & Semiconductors', export: 72.3, import: 68.5, yoy: 5.1, topPartner: 'South Korea' },
+            { code: '61-62', name: 'Textiles & Apparel', export: 42.3, import: 8.2, yoy: 3.5, topPartner: 'USA' },
+            { code: '28-38', name: 'Chemicals', export: 35.8, import: 22.3, yoy: 6.8, topPartner: 'Japan' },
+            { code: '72-83', name: 'Metals & Products', export: 28.4, import: 16.2, yoy: -1.2, topPartner: 'Germany' },
+            { code: '27', name: 'Minerals & Energy', export: 5.2, import: 52.4, yoy: -3.5, topPartner: 'Russia' },
+            { code: '01-24', name: 'Agricultural Products', export: 12.5, import: 28.6, yoy: 4.2, topPartner: 'Brazil' },
+            { code: '94-95', name: 'Furniture & Toys', export: 22.1, import: 3.5, yoy: 2.8, topPartner: 'USA' },
+            { code: '39', name: 'Plastics & Rubber', export: 18.5, import: 12.8, yoy: 4.5, topPartner: 'Vietnam' },
+            { code: '87', name: 'Vehicles', export: 15.2, import: 8.5, yoy: 12.3, topPartner: 'Russia' },
+            { code: '90', name: 'Medical Equipment', export: 8.5, import: 8.5, yoy: 7.8, topPartner: 'Germany' },
+            { code: '26', name: 'Ores & Slag', export: 2.1, import: 16.2, yoy: -2.1, topPartner: 'Australia' }
+        ];
+
+        let filteredCommodities = [...allCommodities];
+
+        function filterCommodities() {
+            const direction = document.getElementById('filter-direction').value;
+            const search = document.getElementById('search-input').value.toLowerCase();
+
+            filteredCommodities = allCommodities.filter(c => {
+                if (search && !c.name.toLowerCase().includes(search) && !c.code.includes(search)) return false;
+                return true;
+            });
+
+            if (direction === 'export') {
+                filteredCommodities.sort((a, b) => b.export - a.export);
+            } else if (direction === 'import') {
+                filteredCommodities.sort((a, b) => b.import - a.import);
+            } else {
+                filteredCommodities.sort((a, b) => (b.export + b.import) - (a.export + a.import));
+            }
+
+            renderAllCharts();
+            renderHsList();
+            renderTable();
+        }
+
+        function renderAllCharts() {
+            renderExportTreemap();
+            renderImportTreemap();
+        }
+
+        function renderExportTreemap() {
+            if (!charts.exportTreemap) {
+                charts.exportTreemap = echarts.init(document.getElementById('chart-export-treemap'));
+            }
+            const theme = getThemeConfig();
+
+            charts.exportTreemap.setOption({
+                ...theme,
+                tooltip: { ...theme.tooltip, formatter: params => `<b>${params.name}</b><br/>Export: $${params.value}B` },
+                series: [{
+                    type: 'treemap',
+                    data: filteredCommodities.map(c => ({ name: c.name, value: c.export, code: c.code })),
+                    roam: false,
+                    breadcrumb: { show: false },
+                    label: { show: true, formatter: '{b}\n${c}B', color: '#fff', fontSize: 11, fontWeight: 500 },
+                    itemStyle: { borderColor: currentTheme === 'dark' ? '#0f1419' : '#fff', borderWidth: 2, borderRadius: 5 },
+                    levels: [{ color: ['#00c853', '#00e676', '#69f0ae', '#b9f6ca', '#1de9b6', '#64ffda', '#a7ffeb', '#e0f7fa'] }]
+                }]
+            }, true);
+
+            charts.exportTreemap.on('click', params => selectCommodity(params.data.code));
+        }
+
+        function renderImportTreemap() {
+            if (!charts.importTreemap) {
+                charts.importTreemap = echarts.init(document.getElementById('chart-import-treemap'));
+            }
+            const theme = getThemeConfig();
+
+            charts.importTreemap.setOption({
+                ...theme,
+                tooltip: { ...theme.tooltip, formatter: params => `<b>${params.name}</b><br/>Import: $${params.value}B` },
+                series: [{
+                    type: 'treemap',
+                    data: filteredCommodities.map(c => ({ name: c.name, value: c.import, code: c.code })),
+                    roam: false,
+                    breadcrumb: { show: false },
+                    label: { show: true, formatter: '{b}\n${c}B', color: '#fff', fontSize: 11, fontWeight: 500 },
+                    itemStyle: { borderColor: currentTheme === 'dark' ? '#0f1419' : '#fff', borderWidth: 2, borderRadius: 5 },
+                    levels: [{ color: ['#ff1744', '#ff5252', '#ff8a80', '#f48fb1', '#e91e63', '#f06292', '#f8bbd9', '#fce4ec'] }]
+                }]
+            }, true);
+
+            charts.importTreemap.on('click', params => selectCommodity(params.data.code));
+        }
+
+        function renderHsList() {
+            const container = document.getElementById('hs-list');
+            container.innerHTML = filteredCommodities.map(c => `
+                <div class="hs-item ${selectedCommodity === c.code ? 'active' : ''}" onclick="selectCommodity('${c.code}')">
+                    <span class="code">${c.code}</span>
+                    <span class="name">${c.name}</span>
+                    <span class="value">$${(c.export + c.import).toFixed(1)}B</span>
+                </div>
+            `).join('');
+        }
+
+        function selectCommodity(code) {
+            selectedCommodity = code;
+            renderHsList();
+
+            const commodity = allCommodities.find(c => c.code === code);
+            if (!commodity) return;
+
+            document.getElementById('detail-name').textContent = commodity.name;
+            document.getElementById('detail-code').textContent = `HS ${commodity.code}`;
+            document.getElementById('detail-description').textContent = `Export: $${commodity.export}B | Import: $${commodity.import}B | YoY: ${commodity.yoy >= 0 ? '+' : ''}${commodity.yoy}%`;
+
+            renderDetailCharts(commodity);
+        }
+
+        function renderDetailCharts(commodity) {
+            const theme = getThemeConfig();
+
+            if (!charts.detailTrend) {
+                charts.detailTrend = echarts.init(document.getElementById('chart-detail-trend'));
+            }
+            if (!charts.detailPartners) {
+                charts.detailPartners = echarts.init(document.getElementById('chart-detail-partners'));
+            }
+
+            const months = ['May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
+            const exportData = months.map(() => +(commodity.export / 12 * (0.8 + Math.random() * 0.4)).toFixed(1));
+            const importData = months.map(() => +(commodity.import / 12 * (0.8 + Math.random() * 0.4)).toFixed(1));
+
+            charts.detailTrend.setOption({
+                ...theme,
+                tooltip: { ...theme.tooltip, trigger: 'axis' },
+                legend: { ...theme.legend, data: ['Export', 'Import'], top: 0, textStyle: { fontSize: 10 } },
+                grid: { left: '3%', right: '4%', bottom: '3%', top: '20%', containLabel: true },
+                xAxis: { type: 'category', data: months, axisLine: theme.axisLine, axisLabel: { ...theme.axisLabel, fontSize: 9 } },
+                yAxis: { type: 'value', axisLine: { show: false }, axisLabel: { ...theme.axisLabel, fontSize: 9, formatter: '${value}B' }, splitLine: theme.splitLine },
+                series: [
+                    { name: 'Export', type: 'line', smooth: true, data: exportData, lineStyle: { color: colors.success }, itemStyle: { color: colors.success } },
+                    { name: 'Import', type: 'line', smooth: true, data: importData, lineStyle: { color: colors.danger }, itemStyle: { color: colors.danger } }
+                ]
+            }, true);
+
+            const partners = ['USA', 'Japan', 'Germany', 'S. Korea', 'Vietnam'];
+            const partnerData = partners.map(() => +(commodity.export * (0.1 + Math.random() * 0.2)).toFixed(1));
+
+            charts.detailPartners.setOption({
+                ...theme,
+                tooltip: { ...theme.tooltip, trigger: 'axis', axisPointer: { type: 'shadow' } },
+                grid: { left: '3%', right: '4%', bottom: '3%', top: '5%', containLabel: true },
+                xAxis: { type: 'value', axisLine: theme.axisLine, axisLabel: { ...theme.axisLabel, fontSize: 9, formatter: '${value}B' }, splitLine: theme.splitLine },
+                yAxis: { type: 'category', data: partners.reverse(), axisLine: theme.axisLine, axisLabel: { ...theme.axisLabel, fontSize: 9 } },
+                series: [{
+                    type: 'bar',
+                    data: partnerData.reverse(),
+                    itemStyle: {
+                        color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: adjustColor(colors.primary, -30) }, { offset: 1, color: colors.primary }] },
+                        borderRadius: [0, 4, 4, 0]
+                    }
+                }]
+            }, true);
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = filteredCommodities.map(c => {
+                const balance = c.export - c.import;
+                const balanceClass = balance >= 0 ? 'success' : 'danger';
+                const yoyClass = c.yoy >= 0 ? 'success' : 'danger';
+
+                return `
+                    <tr class="clickable-row" onclick="selectCommodity('${c.code}')">
+                        <td><span style="font-family: monospace; color: var(--accent);">${c.code}</span></td>
+                        <td><strong>${c.name}</strong></td>
+                        <td>$${c.export.toFixed(1)}B</td>
+                        <td>$${c.import.toFixed(1)}B</td>
+                        <td style="color: var(--${balanceClass})">${balance >= 0 ? '+' : ''}$${balance.toFixed(1)}B</td>
+                        <td style="color: var(--${yoyClass})">${c.yoy >= 0 ? '▲' : '▼'} ${Math.abs(c.yoy)}%</td>
+                        <td>${c.topPartner}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        window.addEventListener('resize', () => {
+            Object.values(charts).forEach(chart => chart && chart.resize());
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = getUrlParams();
+            filterCommodities();
+            if (params.category) {
+                const match = allCommodities.find(c => c.name.toLowerCase().includes(params.category));
+                if (match) selectCommodity(match.code);
+            } else {
+                selectCommodity('84');
+            }
+        });
+    </script>
+</body>
+</html>

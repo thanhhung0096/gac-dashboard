@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+    <title>Countries - China GAC Trade Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/shared.css">
+</head>
+<body>
+    <div class="header">
+        <div class="header-content">
+            <a href="index.html" class="logo">
+                <img id="header-logo" src="assets/logo-dark.svg" alt="China GAC Trade Dashboard">
+            </a>
+            <div class="header-right">
+                <div class="nav-links">
+                    <a href="index.html">Overview</a>
+                    <a href="dashboard.html">Full Dashboard</a>
+                    <a href="countries.html" class="active">Countries</a>
+                    <a href="commodities.html">Commodities</a>
+                    <a href="reports.html">Reports</a>
+                </div>
+                <div class="theme-toggle" onclick="toggleTheme()">
+                    <span class="theme-toggle-icon" id="theme-icon">🌙</span>
+                    <span class="theme-toggle-label" id="theme-label">Dark</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="breadcrumb">
+            <a href="index.html">Home</a>
+            <span>/</span>
+            <span>Countries</span>
+        </div>
+
+        <h1 class="page-title">Trading Partners</h1>
+        <p class="page-subtitle">Explore China's bilateral trade relationships with countries worldwide</p>
+
+        <div class="filter-bar">
+            <div class="filter-group">
+                <label>Region</label>
+                <select id="filter-region" onchange="filterCountries()">
+                    <option value="all">All Regions</option>
+                    <option value="Asia">Asia</option>
+                    <option value="Europe">Europe</option>
+                    <option value="North America">North America</option>
+                    <option value="Latin America">Latin America</option>
+                    <option value="Oceania">Oceania</option>
+                    <option value="Africa">Africa</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Sort By</label>
+                <select id="filter-sort" onchange="filterCountries()">
+                    <option value="total">Total Trade</option>
+                    <option value="export">Export Volume</option>
+                    <option value="import">Import Volume</option>
+                    <option value="balance">Trade Balance</option>
+                    <option value="yoy">YoY Change</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <label>Search</label>
+                <input type="text" id="search-input" placeholder="Country name..." oninput="filterCountries()">
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>Trade Volume by Country<span class="badge">Bar Chart</span></h3>
+                <div id="chart-volume" class="chart-container tall"></div>
+            </div>
+            <div class="chart-card">
+                <h3>Regional Distribution<span class="badge">Pie Chart</span></h3>
+                <div id="chart-regional" class="chart-container tall"></div>
+            </div>
+        </div>
+
+        <h2 class="section-header">All Countries</h2>
+        <div class="chart-card">
+            <table class="data-table" id="countries-table">
+                <thead>
+                    <tr>
+                        <th>Rank</th>
+                        <th>Country</th>
+                        <th>Region</th>
+                        <th>Export</th>
+                        <th>Import</th>
+                        <th>Total</th>
+                        <th>Balance</th>
+                        <th>YoY Change</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="js/shared.js"></script>
+    <script>
+        const charts = {};
+        let filteredData = [...tradeData.countries];
+
+        function filterCountries() {
+            const region = document.getElementById('filter-region').value;
+            const sort = document.getElementById('filter-sort').value;
+            const search = document.getElementById('search-input').value.toLowerCase();
+
+            filteredData = tradeData.countries.filter(c => {
+                if (region !== 'all' && c.region !== region) return false;
+                if (search && !c.name.toLowerCase().includes(search)) return false;
+                return true;
+            });
+
+            filteredData.sort((a, b) => {
+                switch (sort) {
+                    case 'export': return b.export - a.export;
+                    case 'import': return b.import - a.import;
+                    case 'balance': return (b.export - b.import) - (a.export - a.import);
+                    case 'yoy': return b.yoyChange - a.yoyChange;
+                    default: return (b.export + b.import) - (a.export + a.import);
+                }
+            });
+
+            renderAllCharts();
+            renderTable();
+        }
+
+        function renderAllCharts() {
+            renderVolumeChart();
+            renderRegionalChart();
+        }
+
+        function renderVolumeChart() {
+            if (!charts.volume) {
+                charts.volume = echarts.init(document.getElementById('chart-volume'));
+            }
+            const theme = getThemeConfig();
+            const data = filteredData.slice(0, 12);
+
+            charts.volume.setOption({
+                ...theme,
+                tooltip: {
+                    ...theme.tooltip,
+                    trigger: 'axis',
+                    axisPointer: { type: 'shadow' },
+                    formatter: params => {
+                        let html = `<b>${params[0].name}</b><br/>`;
+                        params.forEach(p => {
+                            const c = p.seriesName === 'Export' ? colors.success : colors.danger;
+                            html += `<span style="color:${c}">● ${p.seriesName}</span>: $${p.value}B<br/>`;
+                        });
+                        return html;
+                    }
+                },
+                legend: { ...theme.legend, data: ['Export', 'Import'], top: 0 },
+                grid: { left: '3%', right: '4%', bottom: '3%', top: '12%', containLabel: true },
+                xAxis: {
+                    type: 'value',
+                    axisLine: theme.axisLine,
+                    axisLabel: { ...theme.axisLabel, formatter: '${value}B' },
+                    splitLine: theme.splitLine
+                },
+                yAxis: {
+                    type: 'category',
+                    data: data.map(c => c.name).reverse(),
+                    axisLine: theme.axisLine,
+                    axisLabel: { ...theme.axisLabel, fontSize: 10 },
+                    axisTick: { show: false }
+                },
+                series: [
+                    {
+                        name: 'Export',
+                        type: 'bar',
+                        stack: 'total',
+                        data: data.map(c => c.export).reverse(),
+                        itemStyle: {
+                            color: {
+                                type: 'linear', x: 0, y: 0, x2: 1, y2: 0,
+                                colorStops: [
+                                    { offset: 0, color: adjustColor(colors.success, -30) },
+                                    { offset: 1, color: colors.success }
+                                ]
+                            }
+                        }
+                    },
+                    {
+                        name: 'Import',
+                        type: 'bar',
+                        stack: 'total',
+                        data: data.map(c => c.import).reverse(),
+                        itemStyle: {
+                            color: {
+                                type: 'linear', x: 0, y: 0, x2: 1, y2: 0,
+                                colorStops: [
+                                    { offset: 0, color: adjustColor(colors.danger, -30) },
+                                    { offset: 1, color: colors.danger }
+                                ]
+                            },
+                            borderRadius: [0, 5, 5, 0]
+                        }
+                    }
+                ]
+            }, true);
+
+            charts.volume.on('click', params => {
+                const country = data.find(c => c.name === params.name);
+                if (country) navigateTo('country.html', { code: country.code });
+            });
+        }
+
+        function renderRegionalChart() {
+            if (!charts.regional) {
+                charts.regional = echarts.init(document.getElementById('chart-regional'));
+            }
+            const theme = getThemeConfig();
+
+            const regionData = {};
+            filteredData.forEach(c => {
+                if (!regionData[c.region]) regionData[c.region] = 0;
+                regionData[c.region] += c.export + c.import;
+            });
+
+            charts.regional.setOption({
+                ...theme,
+                tooltip: {
+                    ...theme.tooltip,
+                    trigger: 'item',
+                    formatter: params => `<b>${params.name}</b><br/>$${params.value.toFixed(1)}B (${params.percent}%)`
+                },
+                legend: {
+                    ...theme.legend,
+                    orient: 'vertical',
+                    right: '5%',
+                    top: 'center'
+                },
+                series: [{
+                    type: 'pie',
+                    radius: ['40%', '70%'],
+                    center: ['35%', '50%'],
+                    itemStyle: {
+                        borderRadius: 5,
+                        borderColor: currentTheme === 'dark' ? '#0f1419' : '#fff',
+                        borderWidth: 2
+                    },
+                    label: { show: false },
+                    emphasis: {
+                        scale: true,
+                        scaleSize: 8,
+                        label: { show: true, fontSize: 14, fontWeight: 600, color: theme.textStyle.color }
+                    },
+                    data: Object.entries(regionData).map(([name, value]) => ({
+                        name,
+                        value,
+                        itemStyle: { color: colors.regions[name] }
+                    }))
+                }]
+            }, true);
+
+            charts.regional.on('click', params => {
+                document.getElementById('filter-region').value = params.name;
+                filterCountries();
+            });
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('table-body');
+            tbody.innerHTML = filteredData.map((c, idx) => {
+                const balance = c.export - c.import;
+                const balanceClass = balance >= 0 ? 'positive' : 'negative';
+                const balanceIcon = balance >= 0 ? '▲' : '▼';
+                const yoyClass = c.yoyChange >= 0 ? 'positive' : 'negative';
+                const yoyIcon = c.yoyChange >= 0 ? '▲' : '▼';
+
+                return `
+                    <tr>
+                        <td>${idx + 1}</td>
+                        <td><strong>${c.name}</strong></td>
+                        <td><span class="tag ${getRegionClass(c.region)}">${c.region}</span></td>
+                        <td>$${c.export.toFixed(1)}B</td>
+                        <td>$${c.import.toFixed(1)}B</td>
+                        <td><strong>$${(c.export + c.import).toFixed(1)}B</strong></td>
+                        <td style="color: var(--${balance >= 0 ? 'success' : 'danger'})">${balanceIcon} $${Math.abs(balance).toFixed(1)}B</td>
+                        <td style="color: var(--${c.yoyChange >= 0 ? 'success' : 'danger'})">${yoyIcon} ${Math.abs(c.yoyChange)}%</td>
+                        <td>
+                            <button class="btn btn-secondary" style="padding: 6px 12px; font-size: 11px;" onclick="navigateTo('country.html', {code: '${c.code}'})">
+                                View Details
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        window.addEventListener('resize', () => {
+            Object.values(charts).forEach(chart => chart && chart.resize());
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = getUrlParams();
+            if (params.region) {
+                document.getElementById('filter-region').value = params.region;
+            }
+            filterCountries();
+        });
+    </script>
+</body>
+</html>
