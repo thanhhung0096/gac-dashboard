@@ -1,19 +1,11 @@
-let currentTheme = localStorage.getItem('theme') || 'dark';
+let currentTheme = localStorage.getItem('theme') || 'light';
 
 function setTheme(theme, rerender = false) {
     currentTheme = theme;
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('theme', theme);
 
-    const icon = document.getElementById('theme-icon');
-    const label = document.getElementById('theme-label');
     const logo = document.getElementById('header-logo');
-
-    if (icon && label) {
-        icon.textContent = theme === 'dark' ? '🌙' : '☀️';
-        label.textContent = theme === 'dark' ? 'Dark' : 'Light';
-    }
-
     if (logo) {
         logo.src = theme === 'dark' ? 'assets/logo-dark.svg' : 'assets/logo-light.svg';
     }

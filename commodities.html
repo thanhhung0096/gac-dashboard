@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -76,7 +76,7 @@
     <div class="header">
         <div class="header-content">
             <a href="index.html" class="logo">
-                <img id="header-logo" src="assets/logo-dark.svg" alt="China GAC Trade Dashboard">
+                <img id="header-logo" src="assets/logo-light.svg" alt="China GAC Trade Dashboard">
             </a>
             <div class="header-right">
                 <div class="nav-links">
@@ -84,11 +84,13 @@
                     <a href="dashboard.html">Full Dashboard</a>
                     <a href="countries.html">Countries</a>
                     <a href="commodities.html" class="active">Commodities</a>
-                    <a href="reports.html">Reports</a>
                 </div>
                 <div class="theme-toggle" onclick="toggleTheme()">
-                    <span class="theme-toggle-icon" id="theme-icon">🌙</span>
-                    <span class="theme-toggle-label" id="theme-label">Dark</span>
+                    <div class="theme-toggle-track">
+                        <span class="theme-toggle-icon sun">☀️</span>
+                        <span class="theme-toggle-icon moon">🌙</span>
+                    </div>
+                    <div class="theme-toggle-slider"></div>
                 </div>
             </div>
         </div>
@@ -117,7 +119,6 @@
                 <label>Search HS Code</label>
                 <input type="text" id="search-input" placeholder="Code or name..." oninput="filterCommodities()">
             </div>
-            <button class="btn btn-primary" onclick="navigateTo('reports.html', {type: 'commodity'})">Generate Report</button>
         </div>
 
         <div class="stats-row">

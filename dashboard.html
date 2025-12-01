@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -441,7 +441,7 @@
     <div class="header">
         <div class="header-content">
             <a href="index.html" class="logo">
-                <img id="header-logo" src="assets/logo-dark.svg" alt="China GAC Trade Dashboard">
+                <img id="header-logo" src="assets/logo-light.svg" alt="China GAC Trade Dashboard">
             </a>
             <div class="header-right">
                 <div class="nav-links">
@@ -449,11 +449,13 @@
                     <a href="dashboard.html" class="active">Full Dashboard</a>
                     <a href="countries.html">Countries</a>
                     <a href="commodities.html">Commodities</a>
-                    <a href="reports.html">Reports</a>
                 </div>
                 <div class="theme-toggle" onclick="toggleTheme()">
-                    <span class="theme-toggle-icon" id="theme-icon">🌙</span>
-                    <span class="theme-toggle-label" id="theme-label">Dark</span>
+                    <div class="theme-toggle-track">
+                        <span class="theme-toggle-icon sun">☀️</span>
+                        <span class="theme-toggle-icon moon">🌙</span>
+                    </div>
+                    <div class="theme-toggle-slider"></div>
                 </div>
             </div>
         </div>
@@ -543,29 +545,28 @@
         <h2 class="section-header">Country-by-Country Trade Flow</h2>
         <div class="charts-grid">
             <div class="chart-card full-width">
-                <h3>
-                    Bilateral Trade Flows - Top 12 Partners
-                    <span class="badge">Sankey Diagram</span>
-                </h3>
+                <h3>Bilateral Trade Flows - Top 12 Partners</h3>
                 <div id="chart-sankey" class="chart-container tall"></div>
             </div>
         </div>
 
-        <!-- 2. Trade by Region -->
-        <h2 class="section-header">Trade Flows by Region</h2>
+        <!-- 2. Trade by Region & Bloc -->
+        <h2 class="section-header">Trade Flows by Region & Bloc</h2>
         <div class="charts-grid">
             <div class="chart-card">
-                <h3>
-                    Trade Volume by Region
-                    <span class="badge">Donut Chart</span>
-                </h3>
+                <h3>Trade Volume Distribution</h3>
+                <div class="tab-controls" id="pie-tabs">
+                    <button class="tab-btn active" data-view="region" onclick="switchPieView('region')">By Region</button>
+                    <button class="tab-btn" data-view="bloc" onclick="switchPieView('bloc')">By Bloc</button>
+                </div>
                 <div id="chart-region-pie" class="chart-container"></div>
             </div>
             <div class="chart-card">
-                <h3>
-                    Regional Export vs Import Balance
-                    <span class="badge">Grouped Bar</span>
-                </h3>
+                <h3>Export vs Import Balance</h3>
+                <div class="tab-controls" id="balance-tabs">
+                    <button class="tab-btn active" data-view="region" onclick="switchBalanceView('region')">By Region</button>
+                    <button class="tab-btn" data-view="bloc" onclick="switchBalanceView('bloc')">By Bloc</button>
+                </div>
                 <div id="chart-region-balance" class="chart-container"></div>
             </div>
         </div>
@@ -574,10 +575,7 @@
         <h2 class="section-header">Trade Trend Analysis</h2>
         <div class="charts-grid">
             <div class="chart-card full-width">
-                <h3>
-                    Trade Trends Over Time
-                    <span class="badge">Area Chart</span>
-                </h3>
+                <h3>Trade Trends Over Time</h3>
                 <div class="tab-controls" id="trend-tabs">
                     <button class="tab-btn active" data-period="monthly" onclick="switchTrendPeriod('monthly')">Monthly</button>
                     <button class="tab-btn" data-period="quarterly" onclick="switchTrendPeriod('quarterly')">Quarterly</button>
@@ -591,10 +589,7 @@
         <h2 class="section-header">Interactive Maps</h2>
         <div class="charts-grid">
             <div class="chart-card full-width">
-                <h3>
-                    Global Trade Volume Map
-                    <span class="badge">World Map</span>
-                </h3>
+                <h3>Global Trade Volume Map</h3>
                 <div class="tab-controls" id="map-tabs">
                     <button class="tab-btn active" data-region="all" onclick="switchMapRegion('all')">All Regions</button>
                     <button class="tab-btn" data-region="Asia" onclick="switchMapRegion('Asia')">Asia</button>
@@ -612,17 +607,11 @@
         <h2 class="section-header">Product & Commodity Breakdown</h2>
         <div class="charts-grid">
             <div class="chart-card">
-                <h3>
-                    Export Commodities
-                    <span class="badge">Treemap</span>
-                </h3>
+                <h3>Export Commodities</h3>
                 <div id="chart-export-commodities" class="chart-container"></div>
             </div>
             <div class="chart-card">
-                <h3>
-                    Import Commodities
-                    <span class="badge">Treemap</span>
-                </h3>
+                <h3>Import Commodities</h3>
                 <div id="chart-import-commodities" class="chart-container"></div>
             </div>
         </div>
@@ -631,17 +620,11 @@
         <h2 class="section-header">Import vs Export Comparison</h2>
         <div class="charts-grid">
             <div class="chart-card">
-                <h3>
-                    Top Countries - Export vs Import
-                    <span class="badge">Butterfly Chart</span>
-                </h3>
+                <h3>Top Countries - Export vs Import</h3>
                 <div id="chart-butterfly" class="chart-container tall"></div>
             </div>
             <div class="chart-card">
-                <h3>
-                    Trade Balance by Country
-                    <span class="badge">Diverging Bar</span>
-                </h3>
+                <h3>Trade Balance by Country</h3>
                 <div id="chart-balance-diverging" class="chart-container tall"></div>
             </div>
         </div>
@@ -650,55 +633,41 @@
         <h2 class="section-header">Year-over-Year & Month-over-Month Analytics</h2>
         <div class="charts-grid">
             <div class="chart-card">
-                <h3>
-                    Year-over-Year Change by Country
-                    <span class="badge">Heatmap</span>
-                </h3>
+                <h3>Year-over-Year Change by Country</h3>
                 <div id="chart-yoy-heatmap" class="chart-container tall"></div>
             </div>
             <div class="chart-card">
-                <h3>
-                    Month-over-Month Change Breakdown
-                    <span class="badge">Waterfall</span>
-                </h3>
+                <h3>Month-over-Month Change Breakdown</h3>
                 <div id="chart-mom-waterfall" class="chart-container tall"></div>
             </div>
         </div>
 
-        <!-- 8. Regional & Bloc Hierarchy -->
-        <h2 class="section-header">Regional & Trade Bloc Analysis</h2>
+        <!-- 8. Trade Hierarchy Overview -->
+        <h2 class="section-header">Trade Hierarchy Overview</h2>
         <div class="charts-grid">
-            <div class="chart-card">
-                <h3>
-                    Region → Bloc → Country Hierarchy
-                    <span class="badge">Sunburst Chart</span>
-                </h3>
-                <div class="tab-controls" id="sunburst-tabs">
-                    <button class="tab-btn active" data-metric="total" onclick="switchSunburstMetric('total')">Total Trade</button>
-                    <button class="tab-btn" data-metric="export" onclick="switchSunburstMetric('export')">Exports</button>
-                    <button class="tab-btn" data-metric="import" onclick="switchSunburstMetric('import')">Imports</button>
+            <div class="chart-card full-width">
+                <h3>Region → Bloc → Country Hierarchy</h3>
+                <div class="tab-controls" id="hierarchy-tabs">
+                    <button class="tab-btn active" data-metric="total" onclick="switchHierarchyMetric('total')">Total Trade</button>
+                    <button class="tab-btn" data-metric="export" onclick="switchHierarchyMetric('export')">Exports</button>
+                    <button class="tab-btn" data-metric="import" onclick="switchHierarchyMetric('import')">Imports</button>
                 </div>
-                <div id="chart-sunburst" class="chart-container tall"></div>
-            </div>
-            <div class="chart-card">
-                <h3>
-                    Trade Blocs Comparison
-                    <span class="badge">Grouped Bar</span>
-                </h3>
-                <div id="chart-bloc-comparison" class="chart-container tall"></div>
+                <div id="chart-hierarchy" class="chart-container" style="height: 600px;"></div>
             </div>
         </div>
 
-        <!-- 9. Regional Deep Dive -->
-        <h2 class="section-header">Regional Analysis</h2>
+        <!-- 9. Regional & Bloc Deep Dive -->
+        <h2 class="section-header">Regional & Trade Bloc Deep Dive</h2>
         <div class="charts-grid">
-            <div class="chart-card full-width">
-                <h3>
-                    Country Rankings by Region
-                    <span class="badge">Click regions to filter</span>
-                </h3>
+            <div class="chart-card">
+                <h3>Countries by Region</h3>
                 <div class="map-legend" id="region-legend"></div>
                 <div id="chart-region-ranking" class="chart-container tall"></div>
+            </div>
+            <div class="chart-card">
+                <h3>Countries by Trade Bloc</h3>
+                <div class="map-legend" id="bloc-legend"></div>
+                <div id="chart-bloc-ranking" class="chart-container tall"></div>
             </div>
         </div>
     </div>
@@ -707,25 +676,14 @@
         // ============================================
         // THEME MANAGEMENT
         // ============================================
-        let currentTheme = localStorage.getItem('theme') || 'dark';
+        let currentTheme = localStorage.getItem('theme') || 'light';
 
         function setTheme(theme, rerender = false) {
             currentTheme = theme;
             document.documentElement.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
 
-            const icon = document.getElementById('theme-icon');
-            const label = document.getElementById('theme-label');
             const logo = document.getElementById('header-logo');
-
-            if (theme === 'dark') {
-                icon.textContent = '🌙';
-                label.textContent = 'Dark';
-            } else {
-                icon.textContent = '☀️';
-                label.textContent = 'Light';
-            }
-
             if (logo) {
                 logo.src = theme === 'dark' ? 'assets/logo-dark.svg' : 'assets/logo-light.svg';
             }
@@ -888,7 +846,10 @@
         let mapLoaded = false;
         let selectedMapRegion = null;
         let selectedRankingRegion = null;
-        let sunburstMetric = 'total';
+        let selectedRankingBloc = null;
+        let pieView = 'region';
+        let balanceView = 'region';
+        let hierarchyMetric = 'total';
 
         // ============================================
         // UTILITY FUNCTIONS
@@ -917,9 +878,9 @@
             renderBalanceDiverging();
             renderYoyHeatmap();
             renderWaterfall();
-            renderSunburst();
-            renderBlocComparison();
+            renderHierarchyTreemap();
             renderRegionRanking();
+            renderBlocRanking();
         }
 
         // ============================================
@@ -1002,19 +963,26 @@
         }
 
         // ============================================
-        // 2. REGIONAL CHARTS
+        // 2. REGIONAL/BLOC CHARTS WITH TOGGLE
         // ============================================
         function renderRegionPie() {
             if (!charts.regionPie) {
                 charts.regionPie = echarts.init(document.getElementById('chart-region-pie'));
             }
             const theme = getThemeConfig();
+            const isRegion = pieView === 'region';
+            const data = isRegion ? tradeData.regions : tradeData.blocs;
+            const colorMap = isRegion ? colors.regions : colors.blocs;
 
             charts.regionPie.setOption({
                 ...theme,
                 tooltip: {
                     ...theme.tooltip,
-                    formatter: params => `<b>${params.name}</b><br/>$${params.value}B (${params.percent}%)`
+                    formatter: params => {
+                        const item = data.find(d => d.name === params.name);
+                        const fullName = item && item.fullName ? `<br/><span style="font-size:10px;color:${theme.axisLabel.color}">${item.fullName}</span>` : '';
+                        return `<b>${params.name}</b>${fullName}<br/>$${params.value.toFixed(1)}B (${params.percent}%)`;
+                    }
                 },
                 legend: {
                     ...theme.legend,
@@ -1041,7 +1009,7 @@
                         scaleSize: 8,
                         label: { show: true, fontSize: 14, fontWeight: 600, color: theme.textStyle.color, formatter: '{b}\n{d}%' }
                     },
-                    data: tradeData.regions.map(r => ({
+                    data: data.map(r => ({
                         value: r.export + r.import,
                         name: r.name,
                         itemStyle: {
@@ -1049,8 +1017,8 @@
                                 type: 'linear',
                                 x: 0, y: 0, x2: 1, y2: 1,
                                 colorStops: [
-                                    { offset: 0, color: colors.regions[r.name] },
-                                    { offset: 1, color: adjustColor(colors.regions[r.name], -30) }
+                                    { offset: 0, color: colorMap[r.name] || colors.primary },
+                                    { offset: 1, color: adjustColor(colorMap[r.name] || colors.primary, -30) }
                                 ]
                             }
                         }
@@ -1059,11 +1027,22 @@
             }, true);
         }
 
+        function switchPieView(view) {
+            pieView = view;
+            document.querySelectorAll('#pie-tabs .tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === view);
+            });
+            renderRegionPie();
+        }
+
         function renderRegionBalance() {
             if (!charts.regionBalance) {
                 charts.regionBalance = echarts.init(document.getElementById('chart-region-balance'));
             }
             const theme = getThemeConfig();
+            const isRegion = balanceView === 'region';
+            const data = isRegion ? tradeData.regions : tradeData.blocs;
+            const colorMap = isRegion ? colors.regions : colors.blocs;
 
             charts.regionBalance.setOption({
                 ...theme,
@@ -1072,7 +1051,7 @@
                 grid: { left: '3%', right: '4%', bottom: '8%', top: '15%', containLabel: true },
                 xAxis: {
                     type: 'category',
-                    data: tradeData.regions.map(r => r.name),
+                    data: data.map(r => r.name),
                     axisLine: theme.axisLine,
                     axisLabel: { ...theme.axisLabel, fontSize: 9, rotate: 20 },
                     axisTick: { show: false }
@@ -1088,10 +1067,10 @@
                         name: 'Export',
                         type: 'bar',
                         barWidth: '32%',
-                        data: tradeData.regions.map(r => ({
+                        data: data.map(r => ({
                             value: r.export,
                             itemStyle: {
-                                color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: colors.success }, { offset: 1, color: adjustColor(colors.success, -40) }] },
+                                color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: colorMap[r.name] || colors.success }, { offset: 1, color: adjustColor(colorMap[r.name] || colors.success, -40) }] },
                                 borderRadius: [5, 5, 0, 0]
                             }
                         }))
@@ -1100,7 +1079,7 @@
                         name: 'Import',
                         type: 'bar',
                         barWidth: '32%',
-                        data: tradeData.regions.map(r => ({
+                        data: data.map(r => ({
                             value: r.import,
                             itemStyle: {
                                 color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: colors.danger }, { offset: 1, color: adjustColor(colors.danger, -40) }] },
@@ -1110,6 +1089,14 @@
                     }
                 ]
             }, true);
+        }
+
+        function switchBalanceView(view) {
+            balanceView = view;
+            document.querySelectorAll('#balance-tabs .tab-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.view === view);
+            });
+            renderRegionBalance();
         }
 
         // ============================================
@@ -1532,9 +1519,9 @@
         }
 
         // ============================================
-        // 8. SUNBURST & BLOC CHARTS
+        // 8. HIERARCHY TREEMAP CHART
         // ============================================
-        function buildSunburstData(metric) {
+        function buildHierarchyData(metric) {
             // Build hierarchical data: Region -> Bloc -> Country
             const regionGroups = {};
 
@@ -1552,78 +1539,160 @@
                 regionGroups[country.region][country.bloc].push({
                     name: country.name,
                     value: value,
-                    itemStyle: { color: adjustColor(colors.blocs[country.bloc] || '#888', 20) }
+                    bloc: country.bloc,
+                    region: country.region
                 });
             });
 
-            // Convert to sunburst format
-            const data = Object.keys(regionGroups).map(region => ({
-                name: region,
-                itemStyle: { color: colors.regions[region] },
-                children: Object.keys(regionGroups[region]).map(bloc => ({
-                    name: bloc,
-                    itemStyle: { color: colors.blocs[bloc] },
-                    children: regionGroups[region][bloc]
-                }))
-            }));
+            // Convert to treemap format
+            const data = Object.keys(regionGroups).map(region => {
+                const blocChildren = Object.keys(regionGroups[region]).map(bloc => {
+                    const countries = regionGroups[region][bloc];
+                    countries.sort((a, b) => b.value - a.value);
+                    const blocTotal = countries.reduce((sum, c) => sum + c.value, 0);
+                    return {
+                        name: bloc,
+                        value: blocTotal,
+                        itemStyle: { color: colors.blocs[bloc], borderColor: adjustColor(colors.blocs[bloc], -30) },
+                        children: countries.map(c => ({
+                            name: c.name,
+                            value: c.value,
+                            bloc: c.bloc,
+                            region: c.region,
+                            itemStyle: { color: adjustColor(colors.blocs[bloc], 30) }
+                        }))
+                    };
+                });
+                blocChildren.sort((a, b) => b.value - a.value);
+                const regionTotal = blocChildren.reduce((sum, b) => sum + b.value, 0);
+                return {
+                    name: region,
+                    value: regionTotal,
+                    itemStyle: { color: colors.regions[region], borderColor: adjustColor(colors.regions[region], -40) },
+                    children: blocChildren
+                };
+            });
 
+            data.sort((a, b) => b.value - a.value);
             return data;
         }
 
-        function renderSunburst() {
-            if (!charts.sunburst) {
-                charts.sunburst = echarts.init(document.getElementById('chart-sunburst'));
+        function renderHierarchyTreemap() {
+            if (!charts.hierarchy) {
+                charts.hierarchy = echarts.init(document.getElementById('chart-hierarchy'));
             }
             const theme = getThemeConfig();
-            const data = buildSunburstData(sunburstMetric);
-            const metricLabel = sunburstMetric === 'total' ? 'Total Trade'
-                              : sunburstMetric === 'export' ? 'Exports'
+            const data = buildHierarchyData(hierarchyMetric);
+            const metricLabel = hierarchyMetric === 'total' ? 'Total Trade'
+                              : hierarchyMetric === 'export' ? 'Exports'
                               : 'Imports';
 
-            charts.sunburst.setOption({
+            charts.hierarchy.setOption({
                 ...theme,
                 tooltip: {
                     ...theme.tooltip,
                     formatter: params => {
-                        const path = params.treePathInfo.map(p => p.name).filter(n => n).join(' → ');
-                        return `<b>${path}</b><br/>${metricLabel}: $${params.value.toFixed(1)}B`;
+                        const data = params.data;
+                        let html = `<b>${params.name}</b><br/>${metricLabel}: $${params.value.toFixed(1)}B`;
+
+                        // Show path info
+                        if (data.bloc) {
+                            html = `<b>${params.name}</b><br/>
+                                    <span style="color:${theme.axisLabel.color}">Bloc:</span> ${data.bloc}<br/>
+                                    <span style="color:${theme.axisLabel.color}">Region:</span> ${data.region}<br/>
+                                    ${metricLabel}: $${params.value.toFixed(1)}B`;
+                        } else if (data.children && data.children.length > 0) {
+                            // Parent node - show children breakdown
+                            html += `<br/><br/><span style="font-size:11px;color:${theme.axisLabel.color}">Contains:</span>`;
+                            data.children.slice(0, 5).forEach(child => {
+                                const color = child.itemStyle?.color || '#888';
+                                html += `<br/><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:${color};margin-right:6px;"></span>${child.name}: $${child.value.toFixed(1)}B`;
+                            });
+                            if (data.children.length > 5) {
+                                html += `<br/><span style="color:${theme.axisLabel.color}">... and ${data.children.length - 5} more</span>`;
+                            }
+                        }
+                        return html;
                     }
                 },
                 series: [{
-                    type: 'sunburst',
+                    type: 'treemap',
                     data: data,
-                    radius: ['15%', '90%'],
-                    sort: 'desc',
-                    emphasis: {
-                        focus: 'ancestor',
+                    top: 10,
+                    left: 10,
+                    right: 10,
+                    bottom: 10,
+                    roam: false,
+                    nodeClick: 'zoomToNode',
+                    breadcrumb: {
+                        show: true,
+                        top: 5,
+                        left: 'center',
                         itemStyle: {
-                            shadowBlur: 20,
-                            shadowColor: 'rgba(0,0,0,0.5)'
+                            color: currentTheme === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)',
+                            borderColor: 'transparent'
+                        },
+                        textStyle: {
+                            color: theme.textStyle.color,
+                            fontSize: 12
                         }
                     },
+                    label: {
+                        show: true,
+                        formatter: '{b}',
+                        color: '#fff',
+                        fontSize: 11,
+                        fontWeight: 500,
+                        textShadowColor: 'rgba(0,0,0,0.5)',
+                        textShadowBlur: 3
+                    },
+                    upperLabel: {
+                        show: true,
+                        height: 30,
+                        color: '#fff',
+                        fontSize: 13,
+                        fontWeight: 600,
+                        textShadowColor: 'rgba(0,0,0,0.5)',
+                        textShadowBlur: 3
+                    },
+                    itemStyle: {
+                        borderColor: currentTheme === 'dark' ? '#1a1f2e' : '#fff',
+                        borderWidth: 2,
+                        gapWidth: 2
+                    },
                     levels: [
-                        {},
                         {
-                            r0: '15%',
-                            r: '40%',
-                            itemStyle: { borderRadius: 4, borderWidth: 2, borderColor: currentTheme === 'dark' ? '#1a1f2e' : '#fff' },
-                            label: { rotate: 'tangential', fontSize: 11, fontWeight: 600, color: '#fff' }
+                            itemStyle: {
+                                borderWidth: 3,
+                                borderColor: currentTheme === 'dark' ? '#0f1419' : '#e0e0e0',
+                                gapWidth: 3
+                            },
+                            upperLabel: {
+                                show: true,
+                                height: 35,
+                                formatter: params => `${params.name}: $${params.value.toFixed(1)}B`
+                            }
                         },
                         {
-                            r0: '40%',
-                            r: '65%',
-                            itemStyle: { borderRadius: 3, borderWidth: 1.5, borderColor: currentTheme === 'dark' ? '#1a1f2e' : '#fff' },
-                            label: { rotate: 'tangential', fontSize: 10, color: '#fff' }
+                            itemStyle: {
+                                borderWidth: 2,
+                                gapWidth: 2
+                            },
+                            upperLabel: {
+                                show: true,
+                                height: 28,
+                                formatter: params => `${params.name}: $${params.value.toFixed(1)}B`
+                            }
                         },
                         {
-                            r0: '65%',
-                            r: '90%',
-                            itemStyle: { borderRadius: 2, borderWidth: 1, borderColor: currentTheme === 'dark' ? '#1a1f2e' : '#fff' },
+                            itemStyle: {
+                                borderWidth: 1,
+                                gapWidth: 1
+                            },
                             label: {
-                                rotate: 'radial',
-                                fontSize: 8,
-                                color: theme.textStyle.color,
-                                minAngle: 10
+                                show: true,
+                                formatter: params => params.value >= 5 ? `${params.name}\n$${params.value.toFixed(1)}B` : params.name,
+                                fontSize: 10
                             }
                         }
                     ]
@@ -1631,95 +1700,16 @@
             }, true);
         }
 
-        function switchSunburstMetric(metric) {
-            sunburstMetric = metric;
-            document.querySelectorAll('#sunburst-tabs .tab-btn').forEach(btn => {
+        function switchHierarchyMetric(metric) {
+            hierarchyMetric = metric;
+            document.querySelectorAll('#hierarchy-tabs .tab-btn').forEach(btn => {
                 btn.classList.toggle('active', btn.dataset.metric === metric);
             });
-            renderSunburst();
-        }
-
-        function renderBlocComparison() {
-            if (!charts.blocComparison) {
-                charts.blocComparison = echarts.init(document.getElementById('chart-bloc-comparison'));
-            }
-            const theme = getThemeConfig();
-
-            charts.blocComparison.setOption({
-                ...theme,
-                tooltip: {
-                    ...theme.tooltip,
-                    trigger: 'axis',
-                    axisPointer: { type: 'shadow' },
-                    formatter: params => {
-                        const bloc = tradeData.blocs.find(b => b.name === params[0].name);
-                        let html = `<b>${params[0].name}</b>`;
-                        if (bloc) html += `<br/><span style="color:${theme.axisLabel.color};font-size:10px">${bloc.fullName}</span>`;
-                        params.forEach(p => {
-                            const c = p.seriesName === 'Export' ? colors.success : colors.danger;
-                            html += `<br/><span style="color:${c}">● ${p.seriesName}</span>: $${p.value}B`;
-                        });
-                        return html;
-                    }
-                },
-                legend: { ...theme.legend, data: ['Export', 'Import'], top: 0, itemGap: 20 },
-                grid: { left: '3%', right: '4%', bottom: '3%', top: '12%', containLabel: true },
-                xAxis: {
-                    type: 'category',
-                    data: tradeData.blocs.map(b => b.name),
-                    axisLine: theme.axisLine,
-                    axisLabel: { ...theme.axisLabel, fontSize: 10 },
-                    axisTick: { show: false }
-                },
-                yAxis: {
-                    type: 'value',
-                    axisLine: { show: false },
-                    axisLabel: { ...theme.axisLabel, formatter: '${value}B' },
-                    splitLine: theme.splitLine
-                },
-                series: [
-                    {
-                        name: 'Export',
-                        type: 'bar',
-                        barWidth: '35%',
-                        data: tradeData.blocs.map(b => ({
-                            value: b.export,
-                            itemStyle: {
-                                color: {
-                                    type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-                                    colorStops: [
-                                        { offset: 0, color: colors.blocs[b.name] || colors.success },
-                                        { offset: 1, color: adjustColor(colors.blocs[b.name] || colors.success, -40) }
-                                    ]
-                                },
-                                borderRadius: [5, 5, 0, 0]
-                            }
-                        }))
-                    },
-                    {
-                        name: 'Import',
-                        type: 'bar',
-                        barWidth: '35%',
-                        data: tradeData.blocs.map(b => ({
-                            value: b.import,
-                            itemStyle: {
-                                color: {
-                                    type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-                                    colorStops: [
-                                        { offset: 0, color: colors.danger },
-                                        { offset: 1, color: adjustColor(colors.danger, -40) }
-                                    ]
-                                },
-                                borderRadius: [5, 5, 0, 0]
-                            }
-                        }))
-                    }
-                ]
-            }, true);
+            renderHierarchyTreemap();
         }
 
         // ============================================
-        // 9. REGIONAL RANKING WITH CLICKABLE REGIONS
+        // 9. REGIONAL & BLOC RANKING CHARTS
         // ============================================
         function createRegionLegend() {
             const legendEl = document.getElementById('region-legend');
@@ -1809,6 +1799,96 @@
             }, true);
         }
 
+        // Bloc Legend and Ranking
+        function createBlocLegend() {
+            const legendEl = document.getElementById('bloc-legend');
+            if (!legendEl) return;
+            legendEl.innerHTML = '';
+
+            const allItem = document.createElement('div');
+            allItem.className = `legend-item ${selectedRankingBloc === null ? 'active' : ''}`;
+            allItem.innerHTML = `<span class="legend-dot" style="background:#888"></span>All Blocs`;
+            allItem.onclick = () => { selectedRankingBloc = null; updateBlocLegend(); renderBlocRanking(); };
+            legendEl.appendChild(allItem);
+
+            Object.keys(colors.blocs).forEach(bloc => {
+                const item = document.createElement('div');
+                item.className = `legend-item ${selectedRankingBloc === bloc ? 'active' : ''}`;
+                item.innerHTML = `<span class="legend-dot" style="background:${colors.blocs[bloc]}"></span>${bloc}`;
+                item.onclick = () => {
+                    selectedRankingBloc = selectedRankingBloc === bloc ? null : bloc;
+                    updateBlocLegend();
+                    renderBlocRanking();
+                };
+                legendEl.appendChild(item);
+            });
+        }
+
+        function updateBlocLegend() {
+            document.querySelectorAll('#bloc-legend .legend-item').forEach((item, idx) => {
+                if (idx === 0) {
+                    item.classList.toggle('active', selectedRankingBloc === null);
+                } else {
+                    const bloc = Object.keys(colors.blocs)[idx - 1];
+                    item.classList.toggle('active', selectedRankingBloc === bloc);
+                }
+            });
+        }
+
+        function renderBlocRanking() {
+            if (!charts.blocRanking) {
+                charts.blocRanking = echarts.init(document.getElementById('chart-bloc-ranking'));
+                createBlocLegend();
+            }
+            const theme = getThemeConfig();
+
+            // Filter countries by selected bloc
+            let blocCountries;
+            if (selectedRankingBloc) {
+                blocCountries = tradeData.countries
+                    .filter(c => c.bloc === selectedRankingBloc)
+                    .sort((a, b) => (b.export + b.import) - (a.export + a.import));
+            } else {
+                blocCountries = tradeData.countries
+                    .sort((a, b) => (b.export + b.import) - (a.export + a.import))
+                    .slice(0, 12);
+            }
+
+            charts.blocRanking.setOption({
+                ...theme,
+                tooltip: { ...theme.tooltip, trigger: 'axis', axisPointer: { type: 'shadow' } },
+                legend: { ...theme.legend, data: ['Export', 'Import'], top: 0, itemGap: 20 },
+                grid: { left: '3%', right: '4%', bottom: '3%', top: '12%', containLabel: true },
+                xAxis: { type: 'value', axisLine: { show: false }, axisLabel: { ...theme.axisLabel, formatter: '${value}B' }, splitLine: theme.splitLine },
+                yAxis: { type: 'category', data: blocCountries.map(c => c.name).reverse(), axisLine: theme.axisLine, axisLabel: { ...theme.axisLabel, fontSize: 10 }, axisTick: { show: false } },
+                series: [
+                    {
+                        name: 'Export',
+                        type: 'bar',
+                        stack: 'total',
+                        data: blocCountries.map(c => ({
+                            value: c.export,
+                            itemStyle: {
+                                color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: adjustColor(colors.blocs[c.bloc] || colors.success, -20) }, { offset: 1, color: colors.blocs[c.bloc] || colors.success }] }
+                            }
+                        })).reverse()
+                    },
+                    {
+                        name: 'Import',
+                        type: 'bar',
+                        stack: 'total',
+                        data: blocCountries.map(c => ({
+                            value: c.import,
+                            itemStyle: {
+                                color: { type: 'linear', x: 0, y: 0, x2: 1, y2: 0, colorStops: [{ offset: 0, color: adjustColor(colors.danger, -20) }, { offset: 1, color: colors.danger }] },
+                                borderRadius: [0, 5, 5, 0]
+                            }
+                        })).reverse()
+                    }
+                ]
+            }, true);
+        }
+
         // ============================================
         // FILTER CONTROLS
         // ============================================
@@ -1857,10 +1937,10 @@
             renderButterfly();
             renderBalanceDiverging();
             renderYoyHeatmap();
-            renderSunburst();
-            renderBlocComparison();
             renderWaterfall();
+            renderHierarchyTreemap();
             renderRegionRanking();
+            renderBlocRanking();
         });
     </script>
 </body>

@@ -129,20 +129,55 @@ body {
 .theme-toggle {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
+    padding: 4px;
     border-radius: 24px;
     cursor: pointer;
     transition: all 0.3s ease;
+    position: relative;
+    width: 72px;
+    height: 36px;
 }
 
-[data-theme="dark"] .theme-toggle { background: rgba(255,255,255,0.1); }
-[data-theme="light"] .theme-toggle { background: rgba(0,0,0,0.08); }
-[data-theme="dark"] .theme-toggle:hover { background: rgba(255,255,255,0.2); }
-[data-theme="light"] .theme-toggle:hover { background: rgba(0,0,0,0.12); }
-.theme-toggle-icon { font-size: 16px; }
-[data-theme="dark"] .theme-toggle-label { font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.9); }
-[data-theme="light"] .theme-toggle-label { font-size: 12px; font-weight: 500; color: rgba(0,0,0,0.7); }
+[data-theme="dark"] .theme-toggle { background: rgba(255,255,255,0.15); }
+[data-theme="light"] .theme-toggle { background: rgba(0,0,0,0.1); }
+[data-theme="dark"] .theme-toggle:hover { background: rgba(255,255,255,0.25); }
+[data-theme="light"] .theme-toggle:hover { background: rgba(0,0,0,0.15); }
+
+.theme-toggle-track {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    height: 100%;
+    padding: 0 8px;
+    position: relative;
+}
+
+.theme-toggle-icon {
+    font-size: 14px;
+    z-index: 1;
+    transition: opacity 0.3s ease, filter 0.3s ease;
+}
+
+.theme-toggle-icon.sun { opacity: 0.6; }
+.theme-toggle-icon.moon { opacity: 0.6; }
+[data-theme="light"] .theme-toggle-icon.sun { opacity: 1; }
+[data-theme="light"] .theme-toggle-icon.moon { opacity: 0.8; filter: brightness(0.3); }
+[data-theme="dark"] .theme-toggle-icon.moon { opacity: 1; }
+[data-theme="dark"] .theme-toggle-icon.sun { opacity: 0.8; }
+
+.theme-toggle-slider {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    background: linear-gradient(135deg, var(--accent) 0%, #0097a7 100%);
+    border-radius: 50%;
+    transition: transform 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 188, 212, 0.4);
+}
+
+[data-theme="light"] .theme-toggle-slider { transform: translateX(0); }
+[data-theme="dark"] .theme-toggle-slider { transform: translateX(36px); }
 
 .container {
     max-width: 1800px;
